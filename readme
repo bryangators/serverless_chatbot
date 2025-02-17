@@ -1,0 +1,5 @@
+Serverless AI Chatbot
+
+This project will leverage AWS Lambda to create a serverless api to a chatbot. The underlying infrastructure is provisioned with Terraform.
+
+The serverless chatbot can be easily integrated into any frontend.
