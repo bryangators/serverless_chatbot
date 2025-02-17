@@ -1,5 +1,6 @@
 import json
 import openai
+import os
 
 # Set your OpenAI API key (use environment variables in production)
 openai.api_key = os.environ.get('OPENAI_KEY')
