@@ -49,22 +49,38 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
-resource "null_resource" "install_dependencies" {
+resource "null_resource" "install_layer_dependencies" {
   provisioner "local-exec" {
-    command = "pip install -r ${path.module}/python/requirements.txt -t ${path.module}/python/"
+    command = "pip install -r layer/requirements.txt -t layer/python/lib/python3.8/site-packages"
   }
-
   triggers = {
-    dependencies_versions = filemd5("${path.module}/python/requirements.txt")
-    source_versions       = filemd5("${path.module}/python/index.py")
+    trigger = timestamp()
   }
+}
+
+data "archive_file" "layer_zip" {
+  type        = "zip"
+  source_dir  = "layer"
+  output_path = "layer.zip"
+  depends_on = [
+    null_resource.install_layer_dependencies
+  ]
+}
+
+resource "aws_lambda_layer_version" "lambda_layer" {
+  filename         = "layer.zip"
+  source_code_hash = data.archive_file.layer_zip.output_base64sha256
+  layer_name       = "serverless_chatbot_layer"
+
+  compatible_runtimes = ["python3.8"]
+  depends_on = [
+    data.archive_file.layer_zip
+  ]
 }
 
 resource "random_uuid" "lambda_src_hash" {
   keepers = {
     for filename in setunion(
-      fileset(path.module, "python/*"),
-      fileset(path.module, "python/requirements.txt"),
       fileset(path.module, "python/index.py")
     ) :
     filename => filemd5("${path.module}/${filename}")
@@ -72,24 +88,29 @@ resource "random_uuid" "lambda_src_hash" {
 }
 
 data "archive_file" "lambda_source" {
-  depends_on = [null_resource.install_dependencies]
   excludes = [
     "__pycache__",
     "venv",
   ]
 
-  source_dir  = "${path.module}/python/"
-  output_path = "${path.module}/python/${random_uuid.lambda_src_hash.result}.zip"
+  source_dir  = "python/"
+  output_path = "python/${random_uuid.lambda_src_hash.result}.zip"
   type        = "zip"
 }
 
 resource "aws_lambda_function" "terraform_lambda_func" {
-  filename      = data.archive_file.lambda_source.output_path
+  filename      = "python/${random_uuid.lambda_src_hash.result}.zip" # This should now contain only your script
   function_name = "Serverless_Chatbot_Lambda_Function"
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.lambda_handler"
   runtime       = "python3.8"
-  depends_on    = [aws_iam_role_policy_attachment.attach_iam_policy_to_iam_role]
+
+  layers = [
+    aws_lambda_layer_version.lambda_layer.arn
+  ]
+
+  depends_on = [data.archive_file.lambda_source,
+  aws_lambda_layer_version.lambda_layer]
 }
 
 resource "aws_lambda_function_url" "lambda_url" {
