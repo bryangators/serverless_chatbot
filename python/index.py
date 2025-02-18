@@ -2,7 +2,7 @@ import json
 import openai
 import os
 
-# Set your OpenAI API key (use environment variables in production)
+# Set your OpenAI API key
 openai.api_key = os.environ.get('OPENAI_KEY')
 
 def lambda_handler(event, context):
