@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
 
 resource "null_resource" "install_layer_dependencies" {
   provisioner "local-exec" {
-    command = "pip install -r layer/requirements.txt -t layer/python/lib/python3.8/site-packages"
+    command = "pip install -r layer/requirements.txt -t layer/python/lib/python3.12/site-packages"
   }
   triggers = {
     trigger = timestamp()
@@ -72,7 +72,7 @@ resource "aws_lambda_layer_version" "lambda_layer" {
   source_code_hash = data.archive_file.layer_zip.output_base64sha256
   layer_name       = "serverless_chatbot_layer"
 
-  compatible_runtimes = ["python3.8"]
+  compatible_runtimes = ["python3.12"]
   depends_on = [
     data.archive_file.layer_zip
   ]
@@ -103,7 +103,7 @@ resource "aws_lambda_function" "terraform_lambda_func" {
   function_name = "Serverless_Chatbot_Lambda_Function"
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.lambda_handler"
-  runtime       = "python3.8"
+  runtime       = "python3.12"
 
   layers = [
     aws_lambda_layer_version.lambda_layer.arn
