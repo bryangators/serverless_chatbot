@@ -63,8 +63,9 @@ resource "null_resource" "install_dependencies" {
 resource "random_uuid" "lambda_src_hash" {
   keepers = {
     for filename in setunion(
-      fileset(path.module, "function.py"),
-      fileset(path.module, "requirements.txt")
+      fileset(path.module, "python/*"),
+      fileset(path.module, "python/requirements.txt"),
+      fileset(path.module, "python/index.py")
     ) :
     filename => filemd5("${path.module}/${filename}")
   }
