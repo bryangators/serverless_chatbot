@@ -53,16 +53,16 @@ resource "null_resource" "install_dependencies" {
   provisioner "local-exec" {
     command = "pip install -r ${path.module}/python/requirements.txt -t ${path.module}/python/"
   }
-  
+
   triggers = {
     dependencies_versions = filemd5("${path.module}/python/requirements.txt")
-    source_versions = filemd5("${path.module}/python/index.py")
+    source_versions       = filemd5("${path.module}/python/index.py")
   }
 }
 
 data "archive_file" "lambda_source" {
   depends_on = [null_resource.install_dependencies]
-  excludes   = [
+  excludes = [
     "__pycache__",
     "venv",
   ]
