@@ -78,12 +78,12 @@ data "archive_file" "lambda_source" {
   ]
 
   source_dir  = "${path.module}/python/"
-  output_path = "${random_uuid.lambda_src_hash.result}.zip"
+  output_path = "${path.module}/python/${random_uuid.lambda_src_hash.result}.zip"
   type        = "zip"
 }
 
 resource "aws_lambda_function" "terraform_lambda_func" {
-  filename      = "${path.module}/python/serverless_python.zip"
+  filename      = data.archive_file.lambda_source.output_path
   function_name = "Serverless_Chatbot_Lambda_Function"
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.lambda_handler"
