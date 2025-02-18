@@ -49,10 +49,27 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
-data "archive_file" "zip_the_python_code" {
-  type        = "zip"
+resource "null_resource" "install_dependencies" {
+  provisioner "local-exec" {
+    command = "pip install -r ${path.module}/python/requirements.txt -t ${path.module}/python/"
+  }
+  
+  triggers = {
+    dependencies_versions = filemd5("${path.module}/python/requirements.txt")
+    source_versions = filemd5("${path.module}/python/index.py")
+  }
+}
+
+data "archive_file" "lambda_source" {
+  depends_on = [null_resource.install_dependencies]
+  excludes   = [
+    "__pycache__",
+    "venv",
+  ]
+
   source_dir  = "${path.module}/python/"
   output_path = "${path.module}/python/serverless_python.zip"
+  type        = "zip"
 }
 
 resource "aws_lambda_function" "terraform_lambda_func" {
