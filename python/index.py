@@ -10,7 +10,7 @@ def lambda_handler(event, context):
         # Parse the event body
         body = json.loads(event.get('body', '{}'))  # Handle cases where 'body' might be missing
         
-        # Extract the prompt from the request body
+        # Extract the prompt
         prompt = body.get('prompt', 'write a haiku about AI')  # Default prompt if none provided
 
         # Request a completion from the OpenAI API
