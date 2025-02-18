@@ -60,6 +60,16 @@ resource "null_resource" "install_dependencies" {
   }
 }
 
+resource "random_uuid" "lambda_src_hash" {
+  keepers = {
+    for filename in setunion(
+      fileset(path.module, "function.py"),
+      fileset(path.module, "requirements.txt")
+    ) :
+    filename => filemd5("${path.module}/${filename}")
+  }
+}
+
 data "archive_file" "lambda_source" {
   depends_on = [null_resource.install_dependencies]
   excludes = [
@@ -68,7 +78,7 @@ data "archive_file" "lambda_source" {
   ]
 
   source_dir  = "${path.module}/python/"
-  output_path = "${path.module}/python/serverless_python.zip"
+  output_path = "${random_uuid.lambda_src_hash.result}.zip"
   type        = "zip"
 }
 
