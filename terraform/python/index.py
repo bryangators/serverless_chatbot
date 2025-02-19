@@ -7,9 +7,11 @@ client = openai.OpenAI(api_key=os.environ.get('OPENAI_KEY'))
 
 def lambda_handler(event, context):
     try:
-        # Parse the event body
-        body = json.loads(event.get('body', '{}'))  # Handle cases where 'body' might be missing
-        
+        if "body" in event:
+            body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
+        else:
+            body = event
+
         # Extract the prompt
         prompt = body.get('prompt', 'write a haiku about AI')  # Default prompt if none provided
 
