@@ -3,7 +3,7 @@ import openai
 import os
 
 # Set your OpenAI API key from env var
-openai.api_key = os.environ.get('OPENAI_KEY')
+client = openai.OpenAI(api_key=os.environ.get('OPENAI_KEY'))
 
 def lambda_handler(event, context):
     try:
@@ -14,10 +14,11 @@ def lambda_handler(event, context):
         prompt = body.get('prompt', 'write a haiku about AI')  # Default prompt if none provided
 
         # Request a completion from the OpenAI API
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}]
         )
+        
         
         # Return the response
         return {
