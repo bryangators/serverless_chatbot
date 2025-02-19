@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
         # Request a completion from the OpenAI API
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}]
         )
         
