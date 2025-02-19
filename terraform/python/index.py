@@ -19,12 +19,13 @@ def lambda_handler(event, context):
             messages=[{"role": "user", "content": prompt}]
         )
         
-        
+        message_content = completion.choices[0].message.content
+
         # Return the response
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': completion['choices'][0]['message']['content']
+                'message': json.dumps({'message': message_content})
             })
         }
 
